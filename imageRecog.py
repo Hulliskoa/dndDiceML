@@ -32,6 +32,7 @@ model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accu
 #print(result)
 
 #https://medium.com/@jinilcs/a-simple-keras-model-on-my-laptop-webcam-dda77521e6a0
+cv2.namedWindow("preview")
 video = cv2.VideoCapture(0)
 while True:
         _, frame = video.read()
@@ -45,7 +46,7 @@ while True:
 
         #Our keras model used a 4D tensor, (images x height x width x channel)
         #So changing dimension 128x128x3 into 1x128x128x3 
-        img_array = np.expand_dims(img_array, axis=0)
+        #img_array = np.expand_dims(img_array, axis=0)
 
         #Calling the predict method on model to predict 'me' on the image
         prediction = int(model.predict(img_array)[0][0])
