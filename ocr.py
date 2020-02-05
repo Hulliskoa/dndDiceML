@@ -10,23 +10,30 @@ from keras.layers import Convolution2D
 from keras.layers import MaxPooling2D
 from keras.layers import Flatten
 from keras.layers import Dense
+import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing import image
+from keras.layers import Activation
+from keras.layers import BatchNormalization
+from keras.layers import Dropout
 
 classifier = Sequential()
 
 classifier.add(Convolution2D(32, (3, 3), input_shape = (64,64,3), activation = 'relu'))
-
-classifier.add(MaxPooling2D(pool_size = (2,2)))
+#classifier.add(BatchNormalization())
+classifier.add(MaxPooling2D(pool_size=(2, 2)))
+classifier.add(Dropout(0.5))
 
 classifier.add(Convolution2D(32, (3, 3), activation='relu'))
+#classifier.add(BatchNormalization())
 classifier.add(MaxPooling2D(pool_size=(2, 2)))
+classifier.add(Dropout(0.5))
+
+
 classifier.add(Flatten())
-
-    
 classifier.add(Dense(activation = 'relu', units=128))
-classifier.add(Dense(activation = 'sigmoid', units=6))
-
-classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics =['accuracy'])
+classifier.add(Dense(activation = 'softmax', units=6))
+classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics =['accuracy'])
 
 
 
@@ -55,12 +62,13 @@ test_set = test_datagen.flow_from_directory(
         batch_size = 32,
         class_mode = 'categorical')
 
+print(training_set.class_indices)
 
 classifier.fit_generator(
         training_set,
-        steps_per_epoch=500,
+        steps_per_epoch=100,
         epochs=30,
-        validation_steps = 50,
+        validation_steps = 30,
         validation_data=test_set)
 
 
@@ -71,21 +79,11 @@ with open("classifier.json", "w") as json_file:
 classifier.save_weights("classifier.h5")
 print("Saved model to disk")
 
-model_json = classifier.to_json()
-with open("model_in_json.json", "w") as json_file:
-    json.dump(model_json, json_file)
 
-classifier.save_weights("model_weights.h5")
+test_image = image.load_img('d6.jpg', target_size = (64, 64)) 
+test_image = image.img_to_array(test_image)
+test_image = np.expand_dims(test_image, axis = 0)
 
+result = classifier.predict(test_image) 
 
-#later
-# load json and create model
-#json_file = open('model.json', 'r')
-#loaded_model_json = json_file.read()
-#json_file.close()
-#loaded_model = model_from_json(loaded_model_json)
-# load weights into new model
-#loaded_model.load_weights("model.h5")
-#print("Loaded model from disk")
-
-
+print(result)
